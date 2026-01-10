@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/autonoma-ai/midway/logger"
 )
 
 // Entry represents a single cached file with its metadata.
@@ -70,7 +72,7 @@ func NewDiskLRUCache(cacheDir string, maxSizeGB int64) (*DiskLRUCache, error) {
 
 	if err := cache.loadFromDisk(); err != nil {
 		// Log warning but continue - cache will rebuild
-		fmt.Printf("Warning: failed to load cache metadata: %v\n", err)
+		logger.Warn().Emitf("Failed to load cache metadata: %v", err)
 	}
 
 	return cache, nil
@@ -230,12 +232,12 @@ func (c *DiskLRUCache) loadFromDisk() error {
 		if os.IsNotExist(err) {
 			return nil // No metadata yet, fresh cache
 		}
-		return err
+		return fmt.Errorf("failed to read metadata file: %w", err)
 	}
 
-	var entries []*Entry
+	entries := make([]*Entry, 0)
 	if err := json.Unmarshal(data, &entries); err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal metadata: %w", err)
 	}
 
 	// Rebuild cache from metadata, verifying files exist
@@ -297,7 +299,7 @@ func (c *DiskLRUCache) saveMetadata() error {
 
 	data, err := json.MarshalIndent(entries, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal metadata: %w", err)
 	}
 
 	metadataPath := filepath.Join(c.cacheDir, "metadata.json")

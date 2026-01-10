@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -57,7 +56,7 @@ func (h *Handler) HandleFile(w http.ResponseWriter, r *http.Request) {
 	reader, size, err := h.downloader.Download(ctx, key)
 	if err != nil {
 		logger.Error().Emitf("Failed to download %s: %v", key, err)
-		http.Error(w, fmt.Sprintf("Failed to download: %v", err), http.StatusNotFound)
+		http.Error(w, "Failed to download: "+err.Error(), http.StatusNotFound)
 		return
 	}
 	defer reader.Close()
@@ -68,7 +67,7 @@ func (h *Handler) HandleFile(w http.ResponseWriter, r *http.Request) {
 	filePath, err = h.cache.Put(key, reader)
 	if err != nil {
 		logger.Error().Emitf("Failed to cache %s: %v", key, err)
-		http.Error(w, fmt.Sprintf("Failed to cache: %v", err), http.StatusInternalServerError)
+		http.Error(w, "Failed to cache: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

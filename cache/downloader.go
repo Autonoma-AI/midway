@@ -61,12 +61,12 @@ func (d *S3Downloader) getClientForBucket(ctx context.Context, bucket string) (*
 func (d *S3Downloader) Download(ctx context.Context, key string) (io.ReadCloser, int64, error) {
 	bucket, objectKey, err := parseS3Key(key)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to parse S3 key: %w", err)
 	}
 
 	client, err := d.getClientForBucket(ctx, bucket)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to get S3 client for bucket %s: %w", bucket, err)
 	}
 
 	result, err := client.GetObject(ctx, &s3.GetObjectInput{

@@ -57,7 +57,7 @@ Midway uses the standard AWS SDK credential chain. You can provide credentials v
 ./midway
 
 # With custom configuration
-MIDWAY_PORT=9000 MIDWAY_MAX_SIZE_GB=100 ./midway
+PORT=9000 CACHE_MAX_SIZE_GB=100 ./midway
 ```
 
 ### Requesting Files

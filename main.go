@@ -12,6 +12,7 @@ import (
 	"github.com/autonoma-ai/midway/cache"
 	"github.com/autonoma-ai/midway/handler"
 	"github.com/autonoma-ai/midway/logger"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 )
 
