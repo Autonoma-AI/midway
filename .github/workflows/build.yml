@@ -50,6 +50,22 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Get latest release version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest=$(gh release view --repo ${{ github.repository }} --json tagName -q '.tagName' 2>/dev/null || echo "v0.0.0")
+          # Strip 'v' prefix and split into parts
+          version=${latest#v}
+          major=$(echo $version | cut -d. -f1)
+          minor=$(echo $version | cut -d. -f2)
+          patch=$(echo $version | cut -d. -f3)
+          # Increment patch version
+          new_patch=$((patch + 1))
+          new_version="v${major}.${minor}.${new_patch}"
+          echo "version=$new_version" >> $GITHUB_OUTPUT
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -59,7 +75,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: Build ${{ github.run_number }}
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
           files: artifacts/*
           generate_release_notes: true
