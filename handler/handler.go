@@ -42,13 +42,10 @@ func (h *Handler) HandleFile(w http.ResponseWriter, r *http.Request) {
 	// Check cache
 	filePath, found := h.cache.Get(key)
 	if found {
-		logger.Info().Emitf("Cache hit: %s (served in %v)", key, time.Since(startTime))
+		logger.Info().Emitf("Served %s in %v", key, time.Since(startTime))
 		http.ServeFile(w, r, filePath)
 		return
 	}
-
-	// Cache miss - download from S3
-	logger.Info().Emitf("Cache miss: %s, downloading from S3...", key)
 
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
 	defer cancel()
@@ -61,7 +58,7 @@ func (h *Handler) HandleFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer reader.Close()
 
-	logger.Info().Emitf("Downloaded %s (%d bytes), caching...", key, size)
+	logger.Info().Emitf("Downloading %s (%.2f MB)...", key, float64(size)/(1024*1024))
 
 	// Store in cache
 	filePath, err = h.cache.Put(key, reader)
@@ -71,7 +68,7 @@ func (h *Handler) HandleFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info().Emitf("Cached %s in %v", key, time.Since(startTime))
+	logger.Info().Emitf("Served %s in %v", key, time.Since(startTime))
 
 	// Serve the file
 	http.ServeFile(w, r, filePath)

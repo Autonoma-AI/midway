@@ -29,7 +29,9 @@ func (d *S3Downloader) getClientForBucket(ctx context.Context, bucket string) (*
 	if region, ok := d.bucketRegions.Load(bucket); ok {
 		cfg := d.cfg.Copy()
 		cfg.Region = region.(string)
-		return s3.NewFromConfig(cfg), nil
+		return s3.NewFromConfig(cfg, func(o *s3.Options) {
+			o.DisableLogOutputChecksumValidationSkipped = true
+		}), nil
 	}
 
 	// Detect bucket region using us-east-1 (GetBucketLocation works globally from us-east-1)
@@ -53,7 +55,9 @@ func (d *S3Downloader) getClientForBucket(ctx context.Context, bucket string) (*
 	d.bucketRegions.Store(bucket, region)
 
 	cfg.Region = region
-	return s3.NewFromConfig(cfg), nil
+	return s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.DisableLogOutputChecksumValidationSkipped = true
+	}), nil
 }
 
 // Download downloads an object from S3 and returns a reader.
